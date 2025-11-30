@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookID" version="2.0">
+    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+        <dc:title>{{ .ContentTitle }}</dc:title>
+        <dc:language>en</dc:language>
+        <dc:identifier id="BookID">urn:uuid:{{ .ContentUUID }}</dc:identifier>
+        <dc:date>{{ .ContentDate }}</dc:date>
+        <dc:creator>bakonpancakz</dc:creator>
+    </metadata>
+    <manifest>
+        <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+        {{ range .ContentImages }}
+            <item id="{{ .ID }}" href="images/{{ .Base }}.jpeg" media-type="{{ .Type }}"/>
+        {{ end }}
+        {{ range .ContentImages }}
+            <item id="page{{ .ID }}" href="pages/{{ .Base }}.xhtml" media-type="application/xhtml+xml"/>
+        {{ end }}
+    </manifest>
+    <spine toc="ncx">
+        {{ range .ContentImages }}
+            <itemref idref="page{{ .ID }}"/>
+        {{ end }}
+    </spine>
+</package>

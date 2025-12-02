@@ -96,8 +96,10 @@ func scan(nest []string, extensions []string) {
 		filename := entry.Name()
 
 		// Scan Subdirectory
-		if featureRecursive && entry.IsDir() {
-			scan(append(nest, filename), extensions)
+		if entry.IsDir() {
+			if featureRecursive {
+				scan(append(nest, filename), extensions)
+			}
 			continue
 		}
 

@@ -49,8 +49,10 @@ func scan(nest []string, extensions []string) {
 		filename := entry.Name()
 
 		// Scan Subdirectory
-		if featureRecursive && entry.IsDir() {
-			scan(append(nest, filename), extensions)
+		if entry.IsDir() {
+			if featureRecursive {
+				scan(append(nest, filename), extensions)
+			}
 			continue
 		}
 
@@ -103,7 +105,10 @@ func main() {
 		}
 		if strings.EqualFold(arg, "--multithread") {
 			log.Println("Flag: Enabling Multi-threading")
-			workers = runtime.NumCPU()
+			workers = runtime.NumCPU() - 1
+			if workers < 1 {
+				workers = 1
+			}
 			continue
 		}
 		if strings.EqualFold(arg, "--skip-errors") {
@@ -117,7 +122,7 @@ func main() {
 		fmt.Println("imageconvert")
 		fmt.Println("    --skip-errors   - Skip on conversion error")
 		fmt.Println("    --skip-resume   - Skip Resume Checking")
-		fmt.Println("    --multithread	 - Use Multiple Threads")
+		fmt.Println("    --multithread   - Use Multiple Threads")
 		fmt.Println("    --recursive     - Scan Directories Recursively")
 		fmt.Println("    <From>          - File Extension(s) to convert from, delimited with comma")
 		fmt.Println("    <To>            - File Extension to convert into")

@@ -77,6 +77,7 @@ because it doesn't bother me :P
 
 ```
 mangapub
+    --extract             - Extract Images to Directory
     --recursive           - Scan Directories Recursively
     --height=<value>      - Image Height (Default: 800)
     --width=<value>       - Image Width (Default: 600)

@@ -52,6 +52,7 @@ const (
 
 var (
 	featureRecursive bool = false
+	featureExtract   bool = false
 	featureHeight    int  = 800
 	featureWidth     int  = 600
 	featureQuality   int  = 25
@@ -74,21 +75,21 @@ func main() {
 			switch {
 			case strings.EqualFold(n, "--height"):
 				v := parseInteger(n, s, 128, math.MaxInt)
-				fmt.Printf("Flag: Height %d\n", v)
+				log.Printf("Flag: Height %d\n", v)
 				featureHeight = v
 
 			case strings.EqualFold(n, "--width"):
 				v := parseInteger(n, s, 128, math.MaxInt)
-				fmt.Printf("Flag: Width %d\n", v)
+				log.Printf("Flag: Width %d\n", v)
 				featureWidth = v
 
 			case strings.EqualFold(n, "--quality"):
 				v := parseInteger(n, s, 0, 100)
-				fmt.Printf("Flag: Quality %d\n", v)
+				log.Printf("Flag: Quality %d\n", v)
 				featureQuality = v
 
 			default:
-				fmt.Printf("%s: Unknown Argument", n)
+				log.Printf("%s: Unknown Argument", n)
 				os.Exit(1)
 			}
 
@@ -99,11 +100,17 @@ func main() {
 				featureRecursive = true
 				continue
 			}
+			if strings.EqualFold(n, "--extract") {
+				log.Println("Flag: Extracting Images")
+				featureExtract = true
+				continue
+			}
 			flags = append(flags, segments[0])
 		}
 	}
 	if len(flags) < 1 {
 		fmt.Println("mangapub")
+		fmt.Println("	 --extract			  - Extract Images to Directory")
 		fmt.Println("    --recursive          - Scan Directories Recursively")
 		fmt.Println("    --height=<value>     - Image Height (Default: 800)")
 		fmt.Println("    --width=<value>      - Image Width (Default: 600)")
@@ -118,11 +125,11 @@ func main() {
 		// Generate Paths
 		directory := path.Join(info.Nest...)
 		srcPath := path.Join(directory, info.Filename)
-		dstPath := path.Join(OUTPUT_DIR, directory, info.Basename+".epub")
+		dstPath := path.Join(OUTPUT_DIR, directory, info.Basename)
 		if err := os.MkdirAll(path.Join(OUTPUT_DIR, directory), OUTPUT_FLAG); err != nil {
 			log.Fatalln("Cannot create output directory:", err)
 		}
-		fmt.Printf("Converting: %s\n", srcPath)
+		log.Printf("Converting: %s\n", srcPath)
 
 		// Convert Archive
 		contents, err := ParseCBZ(srcPath)
@@ -130,10 +137,18 @@ func main() {
 			log.Printf("Failed to parse CBZ '%s': %s\n", srcPath, err)
 			continue
 		}
-		if err = CreateEPUB(contents, dstPath); err != nil {
-			log.Printf("Failed to create EPUB '%s': %s\n", dstPath, err)
-			continue
+		if featureExtract {
+			if err := CreateDirectory(contents, dstPath); err != nil {
+				log.Printf("Failed to create DIR '%s': %s\n", dstPath, err)
+				continue
+			}
+		} else {
+			if err := CreateEPUB(contents, dstPath); err != nil {
+				log.Printf("Failed to create EPUB '%s': %s\n", dstPath, err)
+				continue
+			}
 		}
+
 	}
 
 	// Processing Complete
@@ -168,7 +183,8 @@ func scan(nesting []string) {
 	// Read Entries in Directory
 	directory := path.Join(nesting...)
 	if directory == "" {
-		directory = "."
+		directory = path.Clean(flags[0])
+		nesting = []string{flags[0]}
 	}
 	dirEntries, err := os.ReadDir(directory)
 	if err != nil {
@@ -339,7 +355,7 @@ func ParseCBZ(filename string) (*File, error) {
 func CreateEPUB(input *File, filename string) error {
 
 	// EPUB files are really just zip archives
-	writer, err := os.Create(filename)
+	writer, err := os.Create(filename + ".epub")
 	if err != nil {
 		return fmt.Errorf("failed to create output file: %w", err)
 	}
@@ -441,6 +457,25 @@ func CreateEPUB(input *File, filename string) error {
 			if err := tmpl.Execute(output, literals); err != nil {
 				return fmt.Errorf("cannot execute template file '%s': %s", pathTemplate, err)
 			}
+		}
+	}
+
+	return nil
+}
+
+func CreateDirectory(input *File, filename string) error {
+
+	// Create Output Directory
+	if err := os.MkdirAll(filename, OUTPUT_FLAG); err != nil {
+		return fmt.Errorf("failed to create output dir: %w", err)
+	}
+
+	// Write Images
+	for i, image := range input.Images {
+		imageName := fmt.Sprintf("page%03d.jpeg", i+1)
+		imagePath := path.Join(filename, imageName)
+		if err := os.WriteFile(imagePath, image.Data, OUTPUT_FLAG); err != nil {
+			return fmt.Errorf("failed to write image: %w", err)
 		}
 	}
 

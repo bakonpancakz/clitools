@@ -115,6 +115,7 @@ func main() {
 		fmt.Println("    --height=<value>     - Image Height (Default: 800)")
 		fmt.Println("    --width=<value>      - Image Width (Default: 600)")
 		fmt.Println("    --quality=<value>    - JPEG Quality (Default: 25, Range: 0-100)")
+		fmt.Println("    <directory>          - Directory to Scan (Use \".\" for current directory)")
 		os.Exit(0)
 	}
 

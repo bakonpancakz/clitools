@@ -1,4 +1,4 @@
-module cbz2epub
+module  github.com/bakonpancakz/clitools/mangapub
 
 go 1.24.0
 

@@ -171,12 +171,16 @@ func main() {
 	}
 	if len(flags) < 3 {
 		fmt.Println("mediaconvert")
-		fmt.Println("    --skip-resume   - Skip Resume Checking")
-		fmt.Println("    --multithread	 - Use Multiple Threads")
-		fmt.Println("    --recursive     - Scan Directories Recursively")
-		fmt.Println("    <From>          - File Extension(s) to convert from, delimited with comma")
-		fmt.Println("    <To>            - File Extension to convert into")
-		fmt.Println("    [Arguments]     - Arguments to pass onto FFMPEG")
+		fmt.Println("    --skip-resume    - Skip Resume Checking")
+		fmt.Println("    --multithread    - Use Multiple Threads")
+		fmt.Println("    --recursive      - Scan Directories Recursively")
+		fmt.Println("    <From>           - File Extension(s) to convert from, delimited with comma")
+		fmt.Println("    <To>             - File Extension to convert into")
+		fmt.Println("    [Arguments]      - Arguments to pass onto FFMPEG")
+		fmt.Println("Templates:")
+		fmt.Println("    {filename}       - Full Filename    (e.g. myfile.txt)")
+		fmt.Println("    {basename}       - Base Filename    (e.g. myfile")
+		fmt.Println("    {directory}      - Source Directory (e.g. /path/to/file)")
 		os.Exit(0)
 	}
 
@@ -213,7 +217,11 @@ func main() {
 				// Compile Arguments
 				args := []string{"-hide_banner", "-y", "-progress", "-", "-i", srcPath}
 				for i := 3; i < len(flags); i++ {
-					args = append(args, flags[i])
+					str := flags[i]
+					str = strings.ReplaceAll(str, "{basename}", info.Basename)
+					str = strings.ReplaceAll(str, "{filename}", info.Filename)
+					str = strings.ReplaceAll(str, "{directory}", path.Join(info.Nest...))
+					args = append(args, str)
 				}
 				args = append(args, dstPath)
 				proc := exec.Command("ffmpeg", args...)

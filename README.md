@@ -46,6 +46,10 @@ mediaconvert
     <From>          - File Extension(s) to convert from, delimited with comma
     <To>            - File Extension to convert into
     [Arguments]     - Arguments to pass onto FFMPEG
+Templates:
+    {filename}       - Full Filename    (e.g. myfile.txt)
+    {basename}       - Base Filename    (e.g. myfile
+    {directory}      - Source Directory (e.g. /path/to/file)
 ```
 
 <br>
